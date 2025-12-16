@@ -70,44 +70,52 @@ h1 {
 
 <div class="grid" id="gameGrid">
     <div class="game" onclick="launch('library/SubmitGames.html')">
-        <img src="icons/form.png">
+        <img data-icon="form.png">
         [[REQUEST A GAME]]
     </div>
     <div class="game" onclick="launch('library/Eag188.html')">
-        <img src="icons/1.8.8.png">
+        <img data-icon="1.8.8.png">
         Eaglercraft 1.8.8
     </div>
     <div class="game" onclick="launch('library/Eag1122.html')">
-        <img src="icons/1.12.png">
+        <img data-icon="1.12.png">
         Eaglercraft 1.12.2
     </div>
     <div class="game" onclick="launch('library/brainrot.html')">
-        <img src="icons/brainrot.jpg">
+        <img data-icon="brainrot.jpg">
         Steal A Brainrot Duel
     </div>
     <div class="game" onclick="launch('library/BasketBro.html')">
-        <img src="icons/basketbro.png">
+        <img data-icon="basketbro.png">
         Basket Bros
     </div>
     <div class="game" onclick="launch('library/Geometryvibe.html')">
-        <img src="icons/geometry.jpg">
+        <img data-icon="geometry.jpg">
         Geometry Vibes
     </div>
     <div class="game" onclick="launch('library/retroB.html')">
-        <img src="icons/retroB.png">
+        <img data-icon="retroB.png">
         Retro Bowl
     </div>
     <div class="game" onclick="launch('library/Soundboard.html')">
-        <img src="icons/soundboard.png">
+        <img data-icon="soundboard.png">
         Soundboard [FUNNY]
     </div>
     <div class="game" onclick="launch('library/bbplus.html')">
-        <img src="icons/bbplus.png">
+        <img data-icon="bbplus.png">
         Baldi's Basics +
     </div>
 </div>
 
 <script>
+/* ---- ICON BASE URL ---- */
+const ICON_BASE = "https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest/icons/";
+
+/* apply icon URLs */
+document.querySelectorAll("img[data-icon]").forEach(img => {
+    img.src = ICON_BASE + img.dataset.icon;
+});
+
 /* ---- ALPHABETICAL SORT ---- */
 const grid = document.getElementById("gameGrid");
 const games = Array.from(grid.children);
@@ -151,3 +159,4 @@ async function launch(path) {
 
 </body>
 </html>
+
