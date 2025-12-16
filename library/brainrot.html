@@ -3,32 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClassLink</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
+    <title>Loading...</title>
 </head>
 <body>
-    <iframe 
-        src="https://activities.calcount.io/games/2025/rhm2/steal-brainrot-duel/index.html"
-        allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    ></iframe>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Loading content...</h2>
+        <p>Please wait while we fetch the latest version.</p>
+    </div>
+
+    <script>
+        const cacheBust = '?v=' + Date.now();
+
+        // Always pull the newest release
+        const baseHref = 'https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest@latest/';
+        const iconBase = 'https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest@latest/icons/';
+        const targetFile = 'index.html';
+
+        function forceIconSource(img) {
+            if (!img.src) return;
+            try {
+                const url = new URL(img.src, location.href);
+                const filename = url.pathname.split('/').pop();
+                img.src = iconBase + filename + cacheBust;
+            } catch {}
+        }
+
+        function rewriteAllImages() {
+            document.querySelectorAll('img').forEach(forceIconSource);
+        }
+
+        fetch(baseHref + targetFile + cacheBust, { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text();
+            })
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+
+                const base = document.createElement('base');
+                base.href = baseHref;
+                if (!document.querySelector('base')) {
+                    document.head.insertBefore(base, document.head.firstChild);
+                }
+
+                // Rewrite existing images
+                rewriteAllImages();
+
+                // Watch for dynamically added images
+                const observer = new MutationObserver(mutations => {
+                    for (const m of mutations) {
+                        for (const node of m.addedNodes) {
+                            if (node.tagName === 'IMG') {
+                                forceIconSource(node);
+                            } else if (node.querySelectorAll) {
+                                node.querySelectorAll('img').forEach(forceIconSource);
+                            }
+                        }
+                    }
+                });
+
+                observer.observe(document.documentElement, {
+                    childList: true,
+                    subtree: true
+                });
+            })
+            .catch(error => {
+                document.body.innerHTML = `
+                    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif; color: red;">
+                        <h2>Error Loading Content</h2>
+                        <p>${error.message}</p>
+                        <p>Failed to load: ${baseHref + targetFile}</p>
+                    </div>
+                `;
+                console.error('Error fetching the HTML:', error);
+            });
+    </script>
 </body>
 </html>
+
+ 
