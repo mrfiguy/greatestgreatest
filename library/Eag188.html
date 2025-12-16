@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Loading content...</h2>
+        <p>Please wait while we fetch the page.</p>
+    </div>
+
+    <script>
+        const baseHref = 'https://cdn.jsdelivr.net/gh/mrfiguy/editso/';
+        const targetFile = '188.html';
+
+        // Fetch the HTML file
+        fetch(baseHref + targetFile)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Replace the entire document with the fetched HTML
+                document.open();
+                document.write(html);
+                document.close();
+                
+                // Update all relative URLs to use the base href
+                const base = document.createElement('base');
+                base.href = baseHref;
+                if (!document.querySelector('base')) {
+                    document.head.insertBefore(base, document.head.firstChild);
+                }
+            })
+            .catch(error => {
+                document.body.innerHTML = `
+                    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif; color: red;">
+                        <h2>Error Loading Content</h2>
+                        <p>${error.message}</p>
+                        <p>Failed to load: ${baseHref + targetFile}</p>
+                    </div>
+                `;
+                console.error('Error fetching the HTML:', error);
+            });
+    </script>
+</body>
+</html>
