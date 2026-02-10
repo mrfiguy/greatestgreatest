@@ -10,28 +10,42 @@
         <h2>Loading content...</h2>
         <p>Please wait while we fetch the latest version.</p>
     </div>
-
     <script>
         const cacheBust = '?v=' + Date.now();
-
         // Always pull the newest release
         const baseHref = 'https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest@latest/';
         const iconBase = 'https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest@latest/icons/';
         const targetFile = 'index.html';
-
-        function forceIconSource(img) {
+        
+        async function convertToDataURL(img) {
             if (!img.src) return;
             try {
                 const url = new URL(img.src, location.href);
                 const filename = url.pathname.split('/').pop();
-                img.src = iconBase + filename + cacheBust;
-            } catch {}
+                const iconUrl = iconBase + filename + cacheBust;
+                
+                // Fetch the image
+                const response = await fetch(iconUrl, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Failed to fetch icon');
+                
+                // Convert to blob then to data URL
+                const blob = await response.blob();
+                const reader = new FileReader();
+                
+                reader.onloadend = function() {
+                    img.src = reader.result; // Set to data URL
+                };
+                
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                console.warn('Failed to convert image to data URL:', error);
+            }
         }
-
+        
         function rewriteAllImages() {
-            document.querySelectorAll('img').forEach(forceIconSource);
+            document.querySelectorAll('img').forEach(convertToDataURL);
         }
-
+        
         fetch(baseHref + targetFile + cacheBust, { cache: 'no-store' })
             .then(response => {
                 if (!response.ok) {
@@ -43,29 +57,25 @@
                 document.open();
                 document.write(html);
                 document.close();
-
                 const base = document.createElement('base');
                 base.href = baseHref;
                 if (!document.querySelector('base')) {
                     document.head.insertBefore(base, document.head.firstChild);
                 }
-
                 // Rewrite existing images
                 rewriteAllImages();
-
                 // Watch for dynamically added images
                 const observer = new MutationObserver(mutations => {
                     for (const m of mutations) {
                         for (const node of m.addedNodes) {
                             if (node.tagName === 'IMG') {
-                                forceIconSource(node);
+                                convertToDataURL(node);
                             } else if (node.querySelectorAll) {
-                                node.querySelectorAll('img').forEach(forceIconSource);
+                                node.querySelectorAll('img').forEach(convertToDataURL);
                             }
                         }
                     }
                 });
-
                 observer.observe(document.documentElement, {
                     childList: true,
                     subtree: true
@@ -84,5 +94,3 @@
     </script>
 </body>
 </html>
-
- 
