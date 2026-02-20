@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit Planes</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading BitPlanes...</div>
+
+    <script>
+        const baseURL = 'https://cdn.jsdelivr.net/gh/Axolotl9009/bitplanes-modded-1/';
+        
+        // Override URL constructor FIRST
+        (function() {
+            const OriginalURL = window.URL;
+            
+            window.URL = class extends OriginalURL {
+                constructor(url, base) {
+                    if (typeof url === 'string' && !url.match(/^(https?:|data:|blob:)/)) {
+                        url = url.replace(/^\.\//, '');
+                        url = baseURL + url;
+                    }
+                    super(url, base);
+                }
+            };
+            
+            window.URL.createObjectURL = OriginalURL.createObjectURL.bind(OriginalURL);
+            window.URL.revokeObjectURL = OriginalURL.revokeObjectURL.bind(OriginalURL);
+        })();
+        
+        // Fetch and inject the HTML
+        fetch(baseURL + 'index.html')
+            .then(response => response.text())
+            .then(html => {
+                // Add base tag to the HTML
+                html = html.replace('<head>', '<head>\n    <base href="' + baseURL + '">');
+                
+                // Replace the entire document
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                document.getElementById('loading').textContent = 'Error: ' + error.message;
+                console.error('Error loading BitPlanes:', error);
+            });
+    </script>
+</body>
+</html>
