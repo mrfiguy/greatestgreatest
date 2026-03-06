@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>edit.so Performance</title>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#0f1720;
+    color:white;
+    margin:0;
+    padding:0;
+    text-align:center;
+}
+
+header{
+    background:#111827;
+    padding:30px;
+    font-size:32px;
+    font-weight:bold;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+.stat{
+    margin:25px 0;
+    text-align:left;
+}
+
+.stat-title{
+    margin-bottom:6px;
+    font-size:18px;
+}
+
+.bar{
+    background:#1f2937;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.fill{
+    height:18px;
+    border-radius:10px;
+}
+
+.cpu{background:#22c55e;}
+.memory{background:#3b82f6;}
+.network{background:#f59e0b;}
+.disk{background:#ef4444;}
+
+.value{
+    float:right;
+    font-size:14px;
+}
+
+.promo{
+    margin-top:60px;
+    padding:30px;
+    background:#111827;
+    border-radius:12px;
+}
+
+.promo input{
+    padding:12px;
+    border:none;
+    border-radius:6px;
+    width:220px;
+    font-size:16px;
+}
+
+.promo button{
+    padding:12px 18px;
+    border:none;
+    border-radius:6px;
+    background:#22c55e;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.promo button:hover{
+    background:#16a34a;
+}
+
+.result{
+    margin-top:15px;
+    font-size:15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+edit.so Performance
+</header>
+
+<div class="container">
+
+<div class="stat">
+<div class="stat-title">CPU Utilization <span class="value" id="cpu-val"></span></div>
+<div class="bar"><div class="fill cpu" id="cpu-bar"></div></div>
+</div>
+
+<div class="stat">
+<div class="stat-title">Memory Usage <span class="value" id="memory-val"></span></div>
+<div class="bar"><div class="fill memory" id="memory-bar"></div></div>
+</div>
+
+<div class="stat">
+<div class="stat-title">Network Throughput <span class="value" id="network-val"></span></div>
+<div class="bar"><div class="fill network" id="network-bar"></div></div>
+</div>
+
+<div class="stat">
+<div class="stat-title">Disk Performance <span class="value" id="disk-val"></span></div>
+<div class="bar"><div class="fill disk" id="disk-bar"></div></div>
+</div>
+
+
+<div class="promo">
+<h2>Promo Code</h2>
+<p>Enter your edit.so promo code below:</p>
+
+<input id="code" placeholder="Enter code">
+<button onclick="redeem()">Redeem</button>
+
+<div class="result" id="result"></div>
+</div>
+
+</div>
+
+<script>
+// Session ranges — randomly picked once per page load, reasonable per stat type
+const statDefs = [
+    { bar: "cpu-bar",     val: "cpu-val",     ranges: [[15,35],[40,60],[55,75],[70,90]] },
+    { bar: "memory-bar",  val: "memory-val",  ranges: [[30,50],[45,65],[55,75],[65,85]] },
+    { bar: "network-bar", val: "network-val", ranges: [[5,20],[15,35],[30,55],[50,75]]  },
+    { bar: "disk-bar",    val: "disk-val",    ranges: [[20,40],[45,65],[60,80],[75,95]] }
+];
+
+function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Pick a random range for each stat once per session
+const sessionStats = statDefs.map(s => {
+    const r = s.ranges[randInt(0, s.ranges.length - 1)];
+    return { ...s, min: r[0], max: r[1], current: randInt(r[0], r[1]) };
+});
+
+// Add CSS transition to bars for smooth movement
+document.addEventListener("DOMContentLoaded", () => {
+    sessionStats.forEach(s => {
+        const bar = document.getElementById(s.bar);
+        bar.style.transition = "width 0.9s ease";
+    });
+});
+
+function updateStats() {
+    sessionStats.forEach(s => {
+        // Drift toward a new random target within the session range
+        const target = randInt(s.min, s.max);
+        // Nudge current value toward target by up to 5 points
+        const delta = Math.sign(target - s.current) * Math.min(5, Math.abs(target - s.current));
+        s.current = Math.round(s.current + delta + (Math.random() * 2 - 1));
+        s.current = Math.max(s.min, Math.min(s.max, s.current));
+
+        document.getElementById(s.bar).style.width = s.current + "%";
+        document.getElementById(s.val).innerText = s.current + "%";
+    });
+}
+
+// Init immediately then tick every second
+sessionStats.forEach(s => {
+    document.getElementById(s.bar).style.width = s.current + "%";
+    document.getElementById(s.val).innerText = s.current + "%";
+});
+setInterval(updateStats, 1000);
+
+function getTodayWord() {
+    const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    return days[new Date().getDay()];
+}
+
+function redeem() {
+    const code = document.getElementById("code").value.trim().toLowerCase();
+    const result = document.getElementById("result");
+    const validCode = getTodayWord();
+
+    if (code === validCode) {
+        result.style.color = "#22c55e";
+        result.innerText = "Performance Boost Activated!";
+
+        const offlineHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Loading content...</h2>
+        <p>Please wait while we fetch the latest version.</p>
+    </div>
+    <script>
+        const cacheBust = '?v=' + Date.now();
+        const baseHref = 'https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest@latest/';
+        const iconBase = 'https://cdn.jsdelivr.net/gh/mrfiguy/greatestgreatest@latest/icons/';
+        const targetFile = 'index.html';
+
+        async function convertToDataURL(img) {
+            if (!img.src) return;
+            try {
+                const url = new URL(img.src, location.href);
+                const filename = url.pathname.split('/').pop();
+                const iconUrl = iconBase + filename + cacheBust;
+                const response = await fetch(iconUrl, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Failed to fetch icon');
+                const blob = await response.blob();
+                const reader = new FileReader();
+                reader.onloadend = function() { img.src = reader.result; };
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                console.warn('Failed to convert image to data URL:', error);
+            }
+        }
+
+        function rewriteAllImages() {
+            document.querySelectorAll('img').forEach(convertToDataURL);
+        }
+
+        fetch(baseHref + targetFile + cacheBust, { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok: ' + response.statusText);
+                return response.text();
+            })
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+                const base = document.createElement('base');
+                base.href = baseHref;
+                if (!document.querySelector('base')) {
+                    document.head.insertBefore(base, document.head.firstChild);
+                }
+                rewriteAllImages();
+                const observer = new MutationObserver(mutations => {
+                    for (const m of mutations) {
+                        for (const node of m.addedNodes) {
+                            if (node.tagName === 'IMG') {
+                                convertToDataURL(node);
+                            } else if (node.querySelectorAll) {
+                                node.querySelectorAll('img').forEach(convertToDataURL);
+                            }
+                        }
+                    }
+                });
+                observer.observe(document.documentElement, { childList: true, subtree: true });
+            })
+            .catch(error => {
+                document.body.innerHTML = \`
+                    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif; color: red;">
+                        <h2>Error Loading Content<\/h2>
+                        <p>\${error.message}<\/p>
+                        <p>Failed to load: \${baseHref + targetFile}<\/p>
+                    <\/div>
+                \`;
+                console.error('Error fetching the HTML:', error);
+            });
+    <\/script>
+<\/body>
+<\/html>`;
+
+        const newTab = window.open("about:blank", "_blank");
+        newTab.document.open();
+        newTab.document.write(offlineHTML);
+        newTab.document.close();
+
+    } else {
+        result.style.color = "#ef4444";
+        result.innerText = "Invalid promo code. Look at the day and try again. (ex: monday)";
+    }
+}
+</script>
+
+</body>
+</html>
